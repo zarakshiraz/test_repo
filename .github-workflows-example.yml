@@ -1,0 +1,70 @@
+# Example GitHub Actions workflow for running security tests
+# 
+# To use this workflow:
+# 1. Create a .github/workflows directory
+# 2. Copy this file to .github/workflows/security-tests.yml
+# 3. Customize as needed for your CI environment
+
+name: Security Rules Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+    
+    - name: Run security rules tests
+      run: yarn test:security
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-test-results-node-${{ matrix.node-version }}
+        path: |
+          firebase-debug.log
+          firestore-debug.log
+        if-no-files-found: ignore
+
+  flutter-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+    
+    - name: Get Flutter dependencies
+      run: flutter pub get
+    
+    - name: Run Flutter tests
+      run: flutter test
+    
+    - name: Analyze Flutter code
+      run: flutter analyze

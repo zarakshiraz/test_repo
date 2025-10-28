@@ -1,0 +1,17 @@
+{
+  "name": "testing-repo",
+  "version": "1.0.0",
+  "description": "Firebase security rules testing for Flutter app",
+  "scripts": {
+    "test:security": "firebase emulators:exec --only firestore,storage,auth 'npm run test:security:run'",
+    "test:security:run": "node test/security/run-tests.js",
+    "emulators:start": "firebase emulators:start --only firestore,storage,auth"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.2",
+    "firebase-tools": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
