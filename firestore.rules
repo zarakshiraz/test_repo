@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isBlocked(userId, targetUserId) {
+      return exists(/databases/$(database)/documents/contacts/$(userId)/blocked/$(targetUserId));
+    }
+    
+    function hasNotBlockedMe(targetUserId) {
+      return !exists(/databases/$(database)/documents/contacts/$(targetUserId)/blocked/$(request.auth.uid));
+    }
+    
+    // Users collection - users can only access their own data
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && 
+                      request.resource.data.keys().hasAll(['email', 'createdAt']) &&
+                      request.resource.data.email is string &&
+                      request.resource.data.createdAt is timestamp;
+      allow update: if isOwner(userId) && 
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Memberships collection - supports view and edit permissions
+    match /memberships/{membershipId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.members[request.auth.uid].role in ['viewer', 'editor', 'admin']
+      );
+      
+      allow create: if isAuthenticated() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['userId', 'createdAt', 'members']) &&
+                      request.resource.data.createdAt is timestamp &&
+                      request.resource.data.members is map;
+      
+      allow update: if isAuthenticated() && (
+        // Owner can do anything
+        resource.data.userId == request.auth.uid ||
+        // Editors can update but not change ownership or delete members
+        (resource.data.members[request.auth.uid].role in ['editor', 'admin'] &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'createdAt']))
+      );
+      
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Contacts collection - manage contact blocks
+    match /contacts/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+      
+      // Blocked contacts subcollection
+      match /blocked/{blockedUserId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                        request.resource.data.keys().hasAll(['blockedAt']) &&
+                        request.resource.data.blockedAt is timestamp;
+        allow delete: if isOwner(userId);
+      }
+    }
+    
+    // Reminders collection - reminder ownership with optional sharing
+    match /reminders/{reminderId} {
+      allow read: if isAuthenticated() && (
+        // Owner can always read
+        resource.data.userId == request.auth.uid ||
+        // Shared users can read if they're not blocked
+        (request.auth.uid in resource.data.get('sharedWith', []) &&
+         !isBlocked(resource.data.userId, request.auth.uid) &&
+         hasNotBlockedMe(resource.data.userId))
+      );
+      
+      allow create: if isAuthenticated() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['userId', 'title', 'createdAt']) &&
+                      request.resource.data.title is string &&
+                      request.resource.data.createdAt is timestamp;
+      
+      allow update: if isAuthenticated() && (
+        // Owner can update their own reminders
+        resource.data.userId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'createdAt'])
+      );
+      
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
