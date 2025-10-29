@@ -1,30 +1,45 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:testing_repo/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App loads with onboarding screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const GrocliApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Welcome to Grocli'), findsOneWidget);
+    expect(find.text('SKIP'), findsOneWidget);
+    expect(find.text('NEXT'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Can navigate through onboarding', (WidgetTester tester) async {
+    await tester.pumpWidget(const GrocliApp());
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Welcome to Grocli'), findsOneWidget);
+
+    await tester.tap(find.text('NEXT'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('AI-Powered Suggestions'), findsOneWidget);
+  });
+
+  testWidgets('Can skip onboarding to home screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const GrocliApp());
+
+    await tester.tap(find.text('SKIP'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Grocli'), findsOneWidget);
+    expect(find.text('Shopping Progress'), findsOneWidget);
+  });
+
+  testWidgets('Complete onboarding shows home screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const GrocliApp());
+
+    for (int i = 0; i < 4; i++) {
+      await tester.tap(find.text(i < 3 ? 'NEXT' : 'GET STARTED'));
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.text('Grocli'), findsOneWidget);
   });
 }
