@@ -109,7 +109,6 @@ class _ChatPageFullState extends State<ChatPageFull> {
           return Scaffold(
             appBar: AppBar(
               title: const Text('List Chat'),
-              subtitle: const Text('Discuss this list'),
             ),
             body: Column(
               children: [

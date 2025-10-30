@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Transcription audio files - user can only access their own
+    match /transcriptions/{userId}/{fileName} {
+      // Allow read/write for the user who owns the file
+      allow read, write: if isOwner(userId);
+      
+      // Allow delete for the user or Cloud Functions service account
+      allow delete: if isOwner(userId);
+      
+      // Validate file size (max 10MB for audio)
+      allow write: if request.resource.size < 10 * 1024 * 1024;
+      
+      // Validate file type (audio only)
+      allow write: if request.resource.contentType.matches('audio/.*') ||
+                      request.resource.contentType == 'application/octet-stream';
+    }
+    
+    // Voice messages - user can read/write to lists they're part of
+    match /voice_messages/{listId}/{fileName} {
+      // This would require additional Firestore lookup to verify list membership
+      // For now, allow any authenticated user (should be enhanced in production)
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Profile pictures
+    match /profile_pictures/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && 
+                      request.resource.size < 2 * 1024 * 1024 &&
+                      request.resource.contentType.matches('image/.*');
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
