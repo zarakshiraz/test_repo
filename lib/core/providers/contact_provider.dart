@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:contacts_service/contacts_service.dart' as contacts;
+import 'package:contacts_service/contacts_service.dart' as device_contacts;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../models/contact.dart';
@@ -61,11 +61,11 @@ class ContactProvider with ChangeNotifier {
       }
 
       // Get phone contacts
-      final phoneContacts = await contacts.ContactsService.getContacts();
+      final deviceContacts = await device_contacts.ContactsService.getContacts();
 
       // Extract emails and phone numbers
       final emailsAndPhones = <String>[];
-      for (final contact in phoneContacts) {
+      for (final contact in deviceContacts) {
         if (contact.emails != null && contact.emails!.isNotEmpty) {
           emailsAndPhones.addAll(contact.emails!.map((e) => e.value ?? ''));
         }

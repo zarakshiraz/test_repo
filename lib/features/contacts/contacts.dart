@@ -1,0 +1,12 @@
+export 'data/models/contact_status.dart';
+export 'data/models/contact_request.dart';
+export 'data/models/user_contact.dart';
+export 'data/repositories/contacts_repository.dart';
+export 'presentation/providers/contacts_providers.dart';
+export 'presentation/screens/contacts_screen.dart';
+export 'presentation/screens/contact_requests_screen.dart';
+export 'presentation/screens/add_contact_screen.dart';
+export 'presentation/screens/import_contacts_screen.dart';
+export 'presentation/widgets/contact_list_item.dart';
+export 'presentation/widgets/contact_request_item.dart';
+export 'presentation/widgets/user_search_item.dart';
