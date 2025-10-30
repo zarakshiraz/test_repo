@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../router/app_router.dart';
+import '../providers/auth_provider.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -51,9 +53,13 @@ class _SplashPageState extends State<SplashPage>
     await Future.delayed(const Duration(milliseconds: 3000));
     
     if (mounted) {
-      // TODO: Check if user is logged in
-      // For now, always go to login
-      context.go(AppRouter.login);
+      final authProvider = context.read<AuthProvider>();
+      
+      if (authProvider.isAuthenticated) {
+        context.go(AppRouter.lists);
+      } else {
+        context.go(AppRouter.login);
+      }
     }
   }
 
