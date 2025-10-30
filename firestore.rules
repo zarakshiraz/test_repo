@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserId() {
+      return request.auth.uid;
+    }
+    
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && getUserId() == userId;
+    }
+    
+    match /lists/{listId} {
+      allow read: if isAuthenticated() && 
+                     getUserId() in resource.data.participantIds;
+      
+      allow create: if isAuthenticated();
+      
+      allow update: if isAuthenticated() && 
+                       getUserId() in resource.data.participantIds &&
+                       getParticipantRole(listId, getUserId()) in ['editor', 'owner'];
+      
+      allow delete: if isAuthenticated() && 
+                       getParticipantRole(listId, getUserId()) == 'owner';
+      
+      match /participants/{participantId} {
+        allow read: if isAuthenticated() && 
+                       getUserId() in get(/databases/$(database)/documents/lists/$(listId)).data.participantIds;
+        
+        allow create: if isAuthenticated() && 
+                         getParticipantRole(listId, getUserId()) == 'owner';
+        
+        allow update: if isAuthenticated() && 
+                         getParticipantRole(listId, getUserId()) == 'owner' &&
+                         participantId != get(/databases/$(database)/documents/lists/$(listId)).data.ownerId;
+        
+        allow delete: if isAuthenticated() && 
+                         getParticipantRole(listId, getUserId()) == 'owner' &&
+                         participantId != get(/databases/$(database)/documents/lists/$(listId)).data.ownerId;
+      }
+      
+      match /items/{itemId} {
+        allow read: if isAuthenticated() && 
+                       getUserId() in get(/databases/$(database)/documents/lists/$(listId)).data.participantIds;
+        
+        allow create: if isAuthenticated() && 
+                         getParticipantRole(listId, getUserId()) in ['editor', 'owner'];
+        
+        allow update: if isAuthenticated() && 
+                         getParticipantRole(listId, getUserId()) in ['editor', 'owner'];
+        
+        allow delete: if isAuthenticated() && 
+                         getParticipantRole(listId, getUserId()) in ['editor', 'owner'];
+      }
+    }
+    
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && 
+                     resource.data.userId == getUserId();
+      
+      allow create: if isAuthenticated();
+      
+      allow update: if isAuthenticated() && 
+                       resource.data.userId == getUserId();
+      
+      allow delete: if isAuthenticated() && 
+                       resource.data.userId == getUserId();
+    }
+    
+    function getParticipantRole(listId, userId) {
+      return get(/databases/$(database)/documents/lists/$(listId)/participants/$(userId)).data.role;
+    }
+  }
+}
