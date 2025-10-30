@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/lists/presentation/pages/lists_page.dart';
-import '../../features/lists/presentation/pages/list_detail_page.dart';
+import '../../features/lists/presentation/pages/list_detail_with_suggestions_page.dart';
 import '../../features/lists/presentation/pages/create_list_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/chat/presentation/pages/chat_page.dart';
@@ -52,7 +52,7 @@ class AppRouter {
                 name: 'listDetail',
                 builder: (context, state) {
                   final listId = state.pathParameters['id']!;
-                  return ListDetailPage(listId: listId);
+                  return ListDetailWithSuggestionsPage(listId: listId);
                 },
               ),
               GoRoute(

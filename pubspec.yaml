@@ -37,6 +37,7 @@ dependencies:
   
   # State Management
   provider: ^6.1.2
+  flutter_riverpod: ^2.6.1
   equatable: ^2.0.5
   
   # Database and Storage

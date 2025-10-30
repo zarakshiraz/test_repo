@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'core/router/app_router.dart';
 import 'shared/theme/app_theme.dart';
@@ -45,7 +46,7 @@ void main() async {
   // Initialize timezone data for notifications
   tz.initializeTimeZones();
   
-  runApp(const GrocliApp());
+  runApp(const ProviderScope(child: GrocliApp()));
 }
 
 class GrocliApp extends StatelessWidget {
@@ -53,15 +54,15 @@ class GrocliApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return provider.MultiProvider(
       providers: [
-        ChangeNotifierProvider(
+        provider.ChangeNotifierProvider(
           create: (_) => AuthProvider(),
         ),
         // Other providers will be created after auth is initialized
         // See AppRouter for provider creation based on auth state
       ],
-      child: Consumer<AuthProvider>(
+      child: provider.Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           return MaterialApp.router(
             title: 'Grocli - Collaborative Smart Lists',
