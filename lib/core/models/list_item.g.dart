@@ -20,13 +20,13 @@ class ListItemAdapter extends TypeAdapter<ListItem> {
       id: fields[0] as String,
       listId: fields[1] as String,
       content: fields[2] as String,
-      isCompleted: fields[3] as bool? ?? false,
+      isCompleted: fields[3] as bool,
       completedByUserId: fields[4] as String?,
       completedAt: fields[5] as DateTime?,
       createdAt: fields[6] as DateTime,
       updatedAt: fields[7] as DateTime,
       createdByUserId: fields[8] as String,
-      order: fields[9] as int? ?? 0,
+      order: fields[9] as int,
       notes: fields[10] as String?,
     );
   }
