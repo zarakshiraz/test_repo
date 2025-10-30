@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,11 +33,23 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // TODO: Implement email sign in
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.signInWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       
       if (mounted) {
-        context.go(AppRouter.lists);
+        if (success) {
+          context.go(AppRouter.lists);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Login failed'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -61,11 +75,20 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // TODO: Implement Google sign in
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.signInWithGoogle();
       
       if (mounted) {
-        context.go(AppRouter.lists);
+        if (success) {
+          context.go(AppRouter.lists);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Google sign in failed'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -91,11 +114,20 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // TODO: Implement Apple sign in
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.signInWithApple();
       
       if (mounted) {
-        context.go(AppRouter.lists);
+        if (success) {
+          context.go(AppRouter.lists);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Apple sign in failed'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

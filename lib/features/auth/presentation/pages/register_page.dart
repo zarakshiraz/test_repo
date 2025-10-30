@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -46,11 +48,24 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      // TODO: Implement email sign up
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.registerWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        displayName: _nameController.text.trim(),
+      );
       
       if (mounted) {
-        context.go(AppRouter.lists);
+        if (success) {
+          context.go(AppRouter.lists);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Registration failed'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

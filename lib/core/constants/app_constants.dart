@@ -1,70 +1,74 @@
 class AppConstants {
   // App Info
   static const String appName = 'Grocli';
+  static const String appTagline = 'Collaborative Smart Lists';
   static const String appVersion = '1.0.0';
-  
-  // Database
-  static const String databaseName = 'grocli.db';
-  static const int databaseVersion = 1;
-  
-  // Hive Boxes
-  static const String userBox = 'users';
-  static const String listBox = 'lists';
-  static const String listItemBox = 'list_items';
-  static const String messageBox = 'messages';
-  static const String settingsBox = 'settings';
-  
+
   // Firebase Collections
   static const String usersCollection = 'users';
   static const String listsCollection = 'lists';
-  static const String listItemsCollection = 'list_items';
-  static const String messagesCollection = 'messages';
-  
-  // Shared Preferences Keys
-  static const String isFirstLaunchKey = 'is_first_launch';
-  static const String currentUserIdKey = 'current_user_id';
-  static const String themeKey = 'theme';
-  static const String languageKey = 'language';
-  
-  // API Endpoints
-  static const String openAIBaseUrl = 'https://api.openai.com/v1';
-  static const String speechToTextEndpoint = '/audio/transcriptions';
-  
-  // Audio Settings
-  static const int maxRecordingDuration = 300; // 5 minutes in seconds
-  static const int maxVoiceMessageDuration = 60; // 1 minute in seconds
-  
-  // List Settings
-  static const int maxListItems = 1000;
+  static const String itemsSubcollection = 'items';
+  static const String messagesSubcollection = 'messages';
+  static const String contactsSubcollection = 'contacts';
+  static const String notificationsSubcollection = 'notifications';
+
+  // Storage Paths
+  static const String voiceMessagesPath = 'voice_messages';
+  static const String profilePicturesPath = 'profile_pictures';
+
+  // Notification Channels
+  static const String notificationChannelId = 'grocli_channel';
+  static const String notificationChannelName = 'Grocli Notifications';
+  static const String reminderChannelId = 'grocli_reminders';
+  static const String reminderChannelName = 'Grocli Reminders';
+
+  // Limits
   static const int maxListTitleLength = 100;
   static const int maxListDescriptionLength = 500;
   static const int maxItemContentLength = 200;
-  
-  // Chat Settings
   static const int maxMessageLength = 1000;
-  static const int messagesPerPage = 50;
-  
-  // UI Constants
+  static const int maxVoiceMessageDuration = 300; // 5 minutes in seconds
+  static const int maxContactsPerUser = 500;
+  static const int maxSharedUsersPerList = 50;
+
+  // UI
   static const double defaultPadding = 16.0;
-  static const double smallPadding = 8.0;
-  static const double largePadding = 24.0;
-  static const double borderRadius = 12.0;
-  static const double smallBorderRadius = 8.0;
-  static const double largeBorderRadius = 16.0;
-  
-  // Animation Durations
-  static const Duration shortAnimation = Duration(milliseconds: 200);
-  static const Duration mediumAnimation = Duration(milliseconds: 300);
-  static const Duration longAnimation = Duration(milliseconds: 500);
-  
-  // Network
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
-  
-  // Permissions
-  static const List<String> requiredPermissions = [
-    'android.permission.RECORD_AUDIO',
-    'android.permission.INTERNET',
-    'android.permission.ACCESS_NETWORK_STATE',
+  static const double defaultBorderRadius = 12.0;
+  static const int animationDuration = 300; // milliseconds
+
+  // Categories
+  static const List<String> defaultCategories = [
+    'Groceries',
+    'Shopping',
+    'Travel',
+    'Party',
+    'Work',
+    'Personal',
+    'Other',
   ];
+
+  // AI
+  static const int maxAISuggestionsCount = 5;
+  static const int aiProcessingTimeout = 10; // seconds
+
+  // Cache
+  static const Duration cacheExpiration = Duration(days: 7);
+  static const String hiveBoxUsers = 'users';
+  static const String hiveBoxLists = 'lists';
+  static const String hiveBoxItems = 'items';
+  static const String hiveBoxMessages = 'messages';
+
+  // Error Messages
+  static const String genericError = 'Something went wrong. Please try again.';
+  static const String networkError = 'No internet connection. Please check your network.';
+  static const String authError = 'Authentication failed. Please try again.';
+  static const String permissionError = 'Permission denied. Please enable required permissions.';
+
+  // Success Messages
+  static const String listCreated = 'List created successfully!';
+  static const String listUpdated = 'List updated successfully!';
+  static const String listDeleted = 'List deleted successfully!';
+  static const String itemAdded = 'Item added successfully!';
+  static const String messageSent = 'Message sent!';
+  static const String contactAdded = 'Contact added!';
 }
