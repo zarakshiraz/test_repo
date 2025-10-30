@@ -115,7 +115,12 @@ _Coming soon..._
 Grocli/
 ├── lib/
 │   ├── core/
-│   │   ├── models/          # Data models
+│   │   ├── domain/          # Domain layer (NEW)
+│   │   │   ├── models/      # Freezed data models
+│   │   │   ├── enums/       # Domain enums
+│   │   │   ├── repositories/# Repository interfaces
+│   │   │   └── firestore/   # Firestore helpers
+│   │   ├── models/          # Legacy models (deprecated)
 │   │   ├── providers/       # State management
 │   │   ├── services/        # Business logic
 │   │   ├── router/          # Navigation
@@ -143,6 +148,30 @@ We use the Provider package for state management:
 - **ContactProvider**: Contact management
 - **NotificationProvider**: Notifications & reminders
 
+### Domain Models: Freezed
+
+The app uses Freezed for immutable data classes with built-in JSON serialization:
+
+**Core Models:**
+- `UserProfile` - User account information
+- `Contact` - User contacts
+- `ListSummary` - List metadata and summary
+- `ListItem` - Individual list items
+- `ListPermission` - User permissions for lists
+- `ListActivity` - Activity log entries
+- `Template` - Reusable list templates
+- `Message` - Chat messages
+- `Reminder` - Scheduled reminders
+
+**Key Features:**
+- Immutable data classes with `copyWith()`
+- Type-safe JSON serialization
+- Firestore converters for seamless integration
+- Repository pattern for dependency inversion
+- Offline-first architecture support
+
+See [SCHEMA.md](SCHEMA.md) for detailed schema documentation.
+
 ### Backend: Firebase
 
 - **Authentication**: Email, Google, Apple
@@ -165,6 +194,8 @@ All data is cached locally using Hive for:
 - [Setup Guide](SETUP_GUIDE.md) - Detailed setup instructions
 - [Features Documentation](FEATURES.md) - Complete feature list
 - [Implementation Details](README_IMPLEMENTATION.md) - Technical details
+- [Database Schema](SCHEMA.md) - Firestore schema and data models
+- [Domain Models Guide](DOMAIN_MODELS.md) - Working with Freezed models
 
 ---
 
