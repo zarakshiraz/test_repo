@@ -207,13 +207,210 @@ All data is cached locally using Hive for:
    - `GoogleService-Info.plist` → `ios/Runner/`
 4. Run `flutterfire configure`
 
-### Environment Variables
+### Backend Setup (Cloud Functions)
 
-Create `.env` file (optional):
-```env
-AI_API_KEY=your_api_key
-AI_API_URL=your_api_url
+The AI features require Firebase Cloud Functions to proxy OpenAI API calls. This ensures API keys are never stored client-side.
+
+#### Prerequisites
+- Node.js 18+ and npm
+- Firebase CLI: `npm install -g firebase-tools`
+- OpenAI API key: [Get one here](https://platform.openai.com/api-keys)
+- Firebase Blaze plan (required for Cloud Functions)
+
+#### Setup Steps
+
+1. **Initialize Firebase Functions** (if not already done):
+```bash
+firebase init functions
+# Select JavaScript or TypeScript
+# Select your Firebase project
+# Install dependencies
 ```
+
+2. **Install Dependencies**:
+```bash
+cd functions
+npm install openai
+npm install --save firebase-admin firebase-functions
+```
+
+3. **Set OpenAI API Key**:
+```bash
+firebase functions:config:set openai.api_key="your-openai-api-key-here"
+```
+
+4. **Create Cloud Functions** in `functions/index.js`:
+
+```javascript
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+const { OpenAI } = require('openai');
+
+admin.initializeApp();
+
+// Initialize OpenAI with API key from config
+const openai = new OpenAI({
+  apiKey: functions.config().openai.api_key,
+});
+
+/**
+ * Transcribe audio using OpenAI Whisper
+ * Input: { audioUrl: string }
+ * Output: { text: string, confidence: number, language: string }
+ */
+exports.transcribeAudio = functions.https.onCall(async (data, context) => {
+  // Verify authentication
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'User must be authenticated'
+    );
+  }
+
+  const { audioUrl } = data;
+  if (!audioUrl) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'audioUrl is required'
+    );
+  }
+
+  try {
+    // Download audio from Firebase Storage
+    const bucket = admin.storage().bucket();
+    const fileName = audioUrl.split('/').pop().split('?')[0];
+    const file = bucket.file(fileName);
+    
+    // Download to temporary file
+    const tempPath = `/tmp/${fileName}`;
+    await file.download({ destination: tempPath });
+
+    // Transcribe with Whisper
+    const transcription = await openai.audio.transcriptions.create({
+      file: require('fs').createReadStream(tempPath),
+      model: 'whisper-1',
+      response_format: 'verbose_json',
+    });
+
+    // Cleanup temp file
+    require('fs').unlinkSync(tempPath);
+
+    return {
+      text: transcription.text,
+      confidence: 1.0, // Whisper doesn't provide confidence
+      language: transcription.language,
+    };
+  } catch (error) {
+    console.error('Transcription error:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      `Transcription failed: ${error.message}`
+    );
+  }
+});
+
+/**
+ * Extract list items from text using GPT
+ * Input: { text: string }
+ * Output: { items: Array<{content, confidence, category, notes}> }
+ */
+exports.extractListItems = functions.https.onCall(async (data, context) => {
+  // Verify authentication
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'User must be authenticated'
+    );
+  }
+
+  const { text } = data;
+  if (!text) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'text is required'
+    );
+  }
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant that extracts list items from natural language text.
+Extract individual items and return them as a JSON array.
+Each item should have: content (string), confidence (0-1), category (optional), notes (optional).
+Clean up the text, remove filler words, and standardize formatting.
+Example input: "I need milk, eggs, and maybe some bread"
+Example output: {"items": [{"content": "Milk", "confidence": 1.0}, {"content": "Eggs", "confidence": 1.0}, {"content": "Bread", "confidence": 0.7}]}`
+        },
+        {
+          role: 'user',
+          content: text
+        }
+      ],
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
+    });
+
+    const result = JSON.parse(completion.choices[0].message.content);
+    return result;
+  } catch (error) {
+    console.error('Extraction error:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      `Item extraction failed: ${error.message}`
+    );
+  }
+});
+```
+
+5. **Deploy Functions**:
+```bash
+firebase deploy --only functions
+```
+
+6. **Configure CORS** (if needed):
+```bash
+# In Firebase Console -> Storage -> Rules
+# Allow authenticated users to read/write their transcription files
+```
+
+#### API Contract
+
+**transcribeAudio**
+- **Input**: `{ audioUrl: string }` - Firebase Storage URL
+- **Output**: `{ text: string, confidence: number, language: string }`
+- **Auth**: Firebase Auth ID token (automatic)
+
+**extractListItems**
+- **Input**: `{ text: string }` - Raw text to process
+- **Output**: `{ items: Array<{content, confidence, category?, notes?}> }`
+- **Auth**: Firebase Auth ID token (automatic)
+
+#### Cost Estimates
+
+- Whisper API: ~$0.006 per minute of audio
+- GPT-3.5 Turbo: ~$0.0005 per request (typical)
+- Firebase Storage: Free tier usually sufficient
+- Cloud Functions: Free tier: 2M invocations/month
+
+#### Testing
+
+Test your functions locally:
+```bash
+cd functions
+npm run serve
+# Use Firebase Emulator Suite
+```
+
+#### Security Notes
+
+- ✅ API keys stored securely in Cloud Functions config
+- ✅ Never exposed to client-side code
+- ✅ Firebase Auth ensures only authenticated users can call functions
+- ✅ Audio files stored in user-specific Storage paths
+- ✅ Automatic cleanup of processed audio files
 
 ---
 

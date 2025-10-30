@@ -5,7 +5,11 @@ import '../../../../core/models/grocery_list.dart';
 import '../../../../core/models/list_item.dart';
 import '../../../../core/providers/list_provider.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/ai_provider.dart';
 import '../../../../core/services/ai_service.dart';
+import '../../../../core/services/ai_transcription_service.dart';
+import '../../widgets/ai_item_input_sheet.dart';
+import '../../widgets/ai_items_confirmation_dialog.dart';
 
 class ListDetailPageFull extends StatefulWidget {
   final String listId;
@@ -67,6 +71,71 @@ class _ListDetailPageFullState extends State<ListDetailPageFull> {
       setState(() {
         _suggestions = suggestions;
       });
+    }
+  }
+
+  void _showAIInputSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ChangeNotifierProvider(
+        create: (_) => AIProvider(),
+        child: AIItemInputSheet(
+          onItemsExtracted: (extractedItems) {
+            _showItemsConfirmation(context, extractedItems);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showItemsConfirmation(
+    BuildContext context,
+    List<ExtractedItem> extractedItems,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AIItemsConfirmationDialog(
+        extractedItems: extractedItems,
+        onConfirm: (confirmedItems) {
+          _addExtractedItems(context, confirmedItems);
+        },
+      ),
+    );
+  }
+
+  Future<void> _addExtractedItems(
+    BuildContext context,
+    List<ExtractedItem> items,
+  ) async {
+    final authProvider = context.read<AuthProvider>();
+    if (authProvider.currentUser == null) return;
+
+    final listProvider = ListProvider(userId: authProvider.currentUser!.id);
+    int successCount = 0;
+
+    for (final item in items) {
+      final success = await listProvider.addListItem(
+        listId: widget.listId,
+        content: item.content,
+        notes: item.notes,
+      );
+      if (success) successCount++;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added $successCount item${successCount == 1 ? '' : 's'}'),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              // TODO: Implement undo
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -275,6 +344,12 @@ class _ListDetailPageFullState extends State<ListDetailPageFull> {
                         ),
                 ),
               ],
+            ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _showAIInputSheet(context),
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('AI Input'),
+              tooltip: 'Add items using AI',
             ),
           );
         },
