@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isBlocked(userId, targetUserId) {
+      return exists(/databases/$(database)/documents/users/$(userId)/contacts/$(targetUserId)) &&
+             get(/databases/$(database)/documents/users/$(userId)/contacts/$(targetUserId)).data.status == 'blocked';
+    }
+    
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      
+      match /contacts/{contactId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      match /contactRequests/{requestId} {
+        allow read: if isOwner(userId);
+        allow create: if isAuthenticated() && 
+                       !isBlocked(request.resource.data.toUserId, request.auth.uid);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      match /lists/{listId} {
+        allow read: if isAuthenticated() && 
+                     (isOwner(userId) || 
+                      request.auth.uid in resource.data.sharedWith);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) || 
+                        request.auth.uid in resource.data.sharedWith;
+        allow delete: if isOwner(userId);
+        
+        match /items/{itemId} {
+          allow read: if isAuthenticated();
+          allow write: if isAuthenticated();
+        }
+      }
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update: if isAuthenticated();
+        allow delete: if isAuthenticated();
+      }
+    }
+  }
+}

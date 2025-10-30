@@ -164,7 +164,7 @@ class NotificationProvider with ChangeNotifier {
       final notificationId = _uuid.v4();
 
       // Schedule local notification
-      final scheduledDate = tz.TzDateTime.from(scheduledTime, tz.local);
+      final scheduledDate = tz.TZDateTime.from(scheduledTime, tz.local);
 
       const androidDetails = AndroidNotificationDetails(
         'grocli_reminders',
