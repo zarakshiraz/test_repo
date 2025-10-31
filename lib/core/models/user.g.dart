@@ -23,8 +23,8 @@ class UserAdapter extends TypeAdapter<User> {
       photoUrl: fields[3] as String?,
       createdAt: fields[4] as DateTime,
       updatedAt: fields[5] as DateTime,
-      contactIds: (fields[6] as List?)?.cast<String>() ?? const [],
-      blockedUserIds: (fields[7] as List?)?.cast<String>() ?? const [],
+      contactIds: (fields[6] as List).cast<String>(),
+      blockedUserIds: (fields[7] as List).cast<String>(),
     );
   }
 

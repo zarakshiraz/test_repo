@@ -93,6 +93,8 @@ firebase_options.dart
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 
 # API Keys (if stored separately)
 **/*api_keys.dart

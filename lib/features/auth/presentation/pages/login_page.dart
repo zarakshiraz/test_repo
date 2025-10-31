@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/riverpod_providers.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -33,8 +33,8 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.signInWithEmail(
+      final authNotifier = ref.read(authProvider);
+      final success = await authNotifier.signInWithEmail(
         _emailController.text.trim(),
         _passwordController.text,
       );
@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Login failed'),
+              content: Text(authNotifier.errorMessage ?? 'Login failed'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -75,8 +75,8 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.signInWithGoogle();
+      final authNotifier = ref.read(authProvider);
+      final success = await authNotifier.signInWithGoogle();
       
       if (mounted) {
         if (success) {
@@ -84,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Google sign in failed'),
+              content: Text(authNotifier.errorMessage ?? 'Google sign in failed'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -114,8 +114,8 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.signInWithApple();
+      final authNotifier = ref.read(authProvider);
+      final success = await authNotifier.signInWithApple();
       
       if (mounted) {
         if (success) {
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Apple sign in failed'),
+              content: Text(authNotifier.errorMessage ?? 'Apple sign in failed'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
