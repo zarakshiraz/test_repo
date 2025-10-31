@@ -23,15 +23,19 @@ class UserAdapter extends TypeAdapter<User> {
       photoUrl: fields[3] as String?,
       createdAt: fields[4] as DateTime,
       updatedAt: fields[5] as DateTime,
-      contactIds: (fields[6] as List?)?.cast<String>() ?? const [],
-      blockedUserIds: (fields[7] as List?)?.cast<String>() ?? const [],
+      contactIds: (fields[6] as List).cast<String>(),
+      blockedUserIds: (fields[7] as List).cast<String>(),
+      phoneNumber: fields[8] as String?,
+      notificationsEnabled: fields[9] as bool,
+      emailNotificationsEnabled: fields[10] as bool,
+      pushNotificationsEnabled: fields[11] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +51,15 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(6)
       ..write(obj.contactIds)
       ..writeByte(7)
-      ..write(obj.blockedUserIds);
+      ..write(obj.blockedUserIds)
+      ..writeByte(8)
+      ..write(obj.phoneNumber)
+      ..writeByte(9)
+      ..write(obj.notificationsEnabled)
+      ..writeByte(10)
+      ..write(obj.emailNotificationsEnabled)
+      ..writeByte(11)
+      ..write(obj.pushNotificationsEnabled);
   }
 
   @override

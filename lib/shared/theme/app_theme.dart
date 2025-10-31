@@ -45,12 +45,10 @@ class AppTheme {
         secondary: secondaryColor,
         secondaryContainer: secondaryLightColor,
         surface: surfaceColor,
-        background: backgroundColor,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: textPrimaryColor,
-        onBackground: textPrimaryColor,
         onError: Colors.white,
       ),
       
@@ -67,7 +65,7 @@ class AppTheme {
         ),
       ),
       
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surfaceColor,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -253,12 +251,10 @@ class AppTheme {
         secondary: secondaryColor,
         secondaryContainer: secondaryDarkColor,
         surface: darkSurfaceColor,
-        background: darkBackgroundColor,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: darkTextPrimaryColor,
-        onBackground: darkTextPrimaryColor,
         onError: Colors.white,
       ),
       
@@ -275,7 +271,7 @@ class AppTheme {
         ),
       ),
       
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: darkSurfaceColor,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -324,7 +320,9 @@ class AppTheme {
   static MaterialColor _createMaterialColor(Color color) {
     List<double> strengths = <double>[.05];
     Map<int, Color> swatch = <int, Color>{};
-    final int r = color.red, g = color.green, b = color.blue;
+    final int r = (color.r * 255.0).round();
+    final int g = (color.g * 255.0).round();
+    final int b = (color.b * 255.0).round();
 
     for (int i = 1; i < 10; i++) {
       strengths.add(0.1 * i);

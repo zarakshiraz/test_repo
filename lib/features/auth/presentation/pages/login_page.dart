@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/providers/auth_provider.dart';
+import '../../providers/auth_providers.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
   bool _obscurePassword = true;
 
   @override
@@ -28,127 +27,85 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _signInWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final controller = ref.read(authControllerProvider.notifier);
+    await controller.signInWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
 
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.signInWithEmail(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
-      
-      if (mounted) {
-        if (success) {
+    if (mounted) {
+      final state = ref.read(authControllerProvider);
+      state.when(
+        data: (_) {
           context.go(AppRouter.lists);
-        } else {
+        },
+        error: (error, _) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Login failed'),
+              content: Text(error.toString()),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+          controller.resetState();
+        },
+        loading: () {},
+      );
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
+    final controller = ref.read(authControllerProvider.notifier);
+    await controller.signInWithGoogle();
 
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.signInWithGoogle();
-      
-      if (mounted) {
-        if (success) {
+    if (mounted) {
+      final state = ref.read(authControllerProvider);
+      state.when(
+        data: (_) {
           context.go(AppRouter.lists);
-        } else {
+        },
+        error: (error, _) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Google sign in failed'),
+              content: Text(error.toString()),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google sign in failed: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+          controller.resetState();
+        },
+        loading: () {},
+      );
     }
   }
 
   Future<void> _signInWithApple() async {
-    setState(() {
-      _isLoading = true;
-    });
+    final controller = ref.read(authControllerProvider.notifier);
+    await controller.signInWithApple();
 
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.signInWithApple();
-      
-      if (mounted) {
-        if (success) {
+    if (mounted) {
+      final state = ref.read(authControllerProvider);
+      state.when(
+        data: (_) {
           context.go(AppRouter.lists);
-        } else {
+        },
+        error: (error, _) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Apple sign in failed'),
+              content: Text(error.toString()),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Apple sign in failed: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+          controller.resetState();
+        },
+        loading: () {},
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       body: SafeArea(
@@ -158,8 +115,7 @@ class _LoginPageState extends State<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 60),
-              
-              // Logo and Title
+
               Center(
                 child: Column(
                   children: [
@@ -203,10 +159,9 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 48),
-              
-              // Login Form
+
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -225,7 +180,6 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Email Field
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -244,10 +198,9 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
-                      // Password Field
+
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -277,13 +230,22 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                       ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Sign In Button
+
+                      const SizedBox(height: 8),
+
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => context.push('/forgot-password'),
+                          child: const Text('Forgot Password?'),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
                       ElevatedButton(
-                        onPressed: _isLoading ? null : _signInWithEmail,
-                        child: _isLoading
+                        onPressed: isLoading ? null : _signInWithEmail,
+                        child: isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -296,10 +258,9 @@ class _LoginPageState extends State<LoginPage> {
                               )
                             : const Text('Sign In'),
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
-                      // Divider
+
                       Row(
                         children: [
                           const Expanded(child: Divider()),
@@ -307,32 +268,33 @@ class _LoginPageState extends State<LoginPage> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               'or',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[600],
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
                             ),
                           ),
                           const Expanded(child: Divider()),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
-                      // Google Sign In Button
+
                       OutlinedButton.icon(
-                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        onPressed: isLoading ? null : _signInWithGoogle,
                         icon: const Icon(Icons.g_mobiledata, size: 24),
                         label: const Text('Continue with Google'),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 12),
-                      
-                      // Apple Sign In Button
+
                       OutlinedButton.icon(
-                        onPressed: _isLoading ? null : _signInWithApple,
+                        onPressed: isLoading ? null : _signInWithApple,
                         icon: const Icon(Icons.apple, size: 24),
                         label: const Text('Continue with Apple'),
                         style: OutlinedButton.styleFrom(
@@ -343,10 +305,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
-              // Sign Up Link
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

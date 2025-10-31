@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/providers/auth_provider.dart';
+import '../../providers/auth_providers.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
+  final _phoneController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
@@ -28,12 +28,13 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
   Future<void> _signUpWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -43,50 +44,41 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    final controller = ref.read(authControllerProvider.notifier);
+    await controller.registerWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      displayName: _nameController.text.trim(),
+      phoneNumber: _phoneController.text.trim().isNotEmpty
+          ? _phoneController.text.trim()
+          : null,
+    );
 
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.registerWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        displayName: _nameController.text.trim(),
-      );
-      
-      if (mounted) {
-        if (success) {
+    if (mounted) {
+      final state = ref.read(authControllerProvider);
+      state.when(
+        data: (_) {
           context.go(AppRouter.lists);
-        } else {
+        },
+        error: (error, _) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Registration failed'),
+              content: Text(error.toString()),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration failed: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+          controller.resetState();
+        },
+        loading: () {},
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
@@ -103,7 +95,6 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Title
               const Center(
                 child: Column(
                   children: [
@@ -126,10 +117,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
-              // Registration Form
+
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -148,16 +138,16 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Name Field
                       TextFormField(
                         controller: _nameController,
+                        textCapitalization: TextCapitalization.words,
                         decoration: const InputDecoration(
                           labelText: 'Full Name',
                           prefixIcon: Icon(Icons.person_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your full name';
+                            return 'Please enter your name';
                           }
                           if (value.length < 2) {
                             return 'Name must be at least 2 characters';
@@ -165,10 +155,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
-                      // Email Field
+
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -187,10 +176,20 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
-                      // Password Field
+
+                      TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone Number (Optional)',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -220,10 +219,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
-                      // Confirm Password Field
+
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
@@ -238,7 +236,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
                               });
                             },
                           ),
@@ -253,10 +252,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                       ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Terms and Conditions
+
+                      const SizedBox(height: 16),
+
                       Row(
                         children: [
                           Checkbox(
@@ -268,46 +266,19 @@ class _RegisterPageState extends State<RegisterPage> {
                             },
                           ),
                           Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _acceptTerms = !_acceptTerms;
-                                });
-                              },
-                              child: RichText(
-                                text: TextSpan(
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  children: const [
-                                    TextSpan(text: 'I agree to the '),
-                                    TextSpan(
-                                      text: 'Terms of Service',
-                                      style: TextStyle(
-                                        decoration: TextDecoration.underline,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    TextSpan(text: ' and '),
-                                    TextSpan(
-                                      text: 'Privacy Policy',
-                                      style: TextStyle(
-                                        decoration: TextDecoration.underline,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            child: Text(
+                              'I accept the Terms and Conditions',
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
-                      // Sign Up Button
+
                       ElevatedButton(
-                        onPressed: _isLoading ? null : _signUpWithEmail,
-                        child: _isLoading
+                        onPressed: isLoading ? null : _signUpWithEmail,
+                        child: isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -324,10 +295,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
-              // Sign In Link
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
