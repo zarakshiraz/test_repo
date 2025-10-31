@@ -4,7 +4,7 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.9.2-02569B?logo=flutter)
 ![Firebase](https://img.shields.io/badge/Firebase-Latest-FFCA28?logo=firebase)
-![Provider](https://img.shields.io/badge/State-Provider-blue)
+![Riverpod](https://img.shields.io/badge/State-Riverpod-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 **A beautiful, collaborative, AI-powered list management app built with Flutter**
@@ -134,10 +134,11 @@ Grocli/
 └── test/                    # Tests
 ```
 
-### State Management: Provider
+### State Management: Riverpod
 
-We use the Provider package for state management:
-- **AuthProvider**: Authentication state
+We use Riverpod for state management:
+- **AuthProviders**: Authentication state and operations
+- **ProfileProvider**: User profile management
 - **ListProvider**: List CRUD operations
 - **MessageProvider**: Chat functionality  
 - **ContactProvider**: Contact management
@@ -172,7 +173,7 @@ All data is cached locally using Hive for:
 
 ### Frontend
 - **Flutter** 3.9.2 - UI framework
-- **Provider** 6.1.2 - State management
+- **Riverpod** 2.5.1 - State management
 - **Go Router** 14.2.7 - Navigation
 - **Hive** 2.2.3 - Local database
 
@@ -219,16 +220,133 @@ AI_API_URL=your_api_url
 
 ## 🧪 Testing
 
+### Running Tests
+
 ```bash
 # Run all tests
 flutter test
 
-# Run specific test
-flutter test test/widget_test.dart
+# Run specific test file
+flutter test test/features/auth/data/auth_repository_test.dart
+
+# Run widget tests
+flutter test test/features/auth/presentation/
 
 # Coverage report
 flutter test --coverage
 ```
+
+### Testing Authentication Flows
+
+#### Email/Password Authentication
+
+1. **Sign Up**:
+   - Open the app
+   - Tap "Sign Up" on the login screen
+   - Enter name, email, phone (optional), and password
+   - Accept terms and conditions
+   - Tap "Create Account"
+   - Should redirect to lists page
+
+2. **Sign In**:
+   - Open the app
+   - Enter registered email and password
+   - Tap "Sign In"
+   - Should redirect to lists page
+
+3. **Password Reset**:
+   - On login screen, tap "Forgot Password?"
+   - Enter registered email
+   - Tap "Send Reset Email"
+   - Check email for reset link
+   - Follow link to reset password
+
+#### Google Sign-In
+
+**Prerequisites**: Configure Google Sign-In in Firebase Console and add SHA-1 certificate to your Firebase project.
+
+1. On login screen, tap "Continue with Google"
+2. Select Google account
+3. Grant permissions
+4. Should redirect to lists page
+5. User profile should be created in Firestore with Google account data
+
+#### Apple Sign-In (iOS only)
+
+**Prerequisites**: 
+- Enable Apple Sign-In in Firebase Console
+- Configure in Xcode capabilities
+- Test on iOS 13+ device or simulator
+
+1. On login screen, tap "Continue with Apple"
+2. Follow Apple authentication flow
+3. Should redirect to lists page
+4. User profile should be created in Firestore
+
+### Testing Profile Management
+
+1. **View Profile**:
+   - Navigate to Profile tab
+   - Should display user name, email, phone, and profile photo
+   - Should show member since date
+
+2. **Edit Profile**:
+   - Tap "Edit Profile" button
+   - Update display name and/or phone number
+   - Tap "Save"
+   - Changes should persist in Firestore
+
+3. **Upload Photo**:
+   - Tap camera icon on profile photo
+   - Select image from gallery
+   - Photo should upload to Firebase Storage
+   - Updated photo URL should save to user document
+
+4. **Notification Settings**:
+   - Toggle notification switches
+   - Settings should save to Firestore
+   - Can disable specific notification types
+
+5. **Delete Account**:
+   - Tap "Delete Account"
+   - Confirm deletion
+   - User document and profile photo should be deleted
+   - Should redirect to login screen
+
+### Manual QA Checklist
+
+- [ ] Email sign-up creates user in Firestore with all fields
+- [ ] Email login works with correct credentials
+- [ ] Email login shows error with wrong credentials
+- [ ] Password reset email is sent successfully
+- [ ] Google Sign-In creates/updates user profile
+- [ ] Apple Sign-In creates/updates user profile (iOS)
+- [ ] Profile photo uploads to Firebase Storage
+- [ ] Profile edits persist in Firestore
+- [ ] Notification settings save correctly
+- [ ] Account deletion removes all user data
+- [ ] Auth state persists across app restarts
+- [ ] Redirect logic works (authenticated users can't access login page)
+- [ ] Loading states display correctly during operations
+- [ ] Error messages are user-friendly
+
+### Security Rules Testing
+
+Deploy the Firestore and Storage rules before testing:
+
+```bash
+# Deploy Firestore rules
+firebase deploy --only firestore:rules
+
+# Deploy Storage rules
+firebase deploy --only storage:rules
+```
+
+Verify security:
+- [ ] Users can only read/write their own profile
+- [ ] Unauthenticated users cannot access Firestore
+- [ ] Users can only upload photos to their own storage path
+- [ ] Profile photos are publicly readable but only writable by owner
 
 ---
 

@@ -29,6 +29,18 @@ class User extends Equatable {
   @HiveField(7)
   final List<String> blockedUserIds;
 
+  @HiveField(8)
+  final String? phoneNumber;
+
+  @HiveField(9)
+  final bool notificationsEnabled;
+
+  @HiveField(10)
+  final bool emailNotificationsEnabled;
+
+  @HiveField(11)
+  final bool pushNotificationsEnabled;
+
   const User({
     required this.id,
     required this.email,
@@ -38,6 +50,10 @@ class User extends Equatable {
     required this.updatedAt,
     this.contactIds = const [],
     this.blockedUserIds = const [],
+    this.phoneNumber,
+    this.notificationsEnabled = true,
+    this.emailNotificationsEnabled = true,
+    this.pushNotificationsEnabled = true,
   });
 
   User copyWith({
@@ -49,6 +65,10 @@ class User extends Equatable {
     DateTime? updatedAt,
     List<String>? contactIds,
     List<String>? blockedUserIds,
+    String? phoneNumber,
+    bool? notificationsEnabled,
+    bool? emailNotificationsEnabled,
+    bool? pushNotificationsEnabled,
   }) {
     return User(
       id: id ?? this.id,
@@ -59,6 +79,10 @@ class User extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       contactIds: contactIds ?? this.contactIds,
       blockedUserIds: blockedUserIds ?? this.blockedUserIds,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      emailNotificationsEnabled: emailNotificationsEnabled ?? this.emailNotificationsEnabled,
+      pushNotificationsEnabled: pushNotificationsEnabled ?? this.pushNotificationsEnabled,
     );
   }
 
@@ -72,6 +96,10 @@ class User extends Equatable {
       'updatedAt': updatedAt.toIso8601String(),
       'contactIds': contactIds,
       'blockedUserIds': blockedUserIds,
+      'phoneNumber': phoneNumber,
+      'notificationsEnabled': notificationsEnabled,
+      'emailNotificationsEnabled': emailNotificationsEnabled,
+      'pushNotificationsEnabled': pushNotificationsEnabled,
     };
   }
 
@@ -85,6 +113,10 @@ class User extends Equatable {
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       contactIds: List<String>.from(json['contactIds'] ?? []),
       blockedUserIds: List<String>.from(json['blockedUserIds'] ?? []),
+      phoneNumber: json['phoneNumber'] as String?,
+      notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+      emailNotificationsEnabled: json['emailNotificationsEnabled'] as bool? ?? true,
+      pushNotificationsEnabled: json['pushNotificationsEnabled'] as bool? ?? true,
     );
   }
 
@@ -98,5 +130,9 @@ class User extends Equatable {
         updatedAt,
         contactIds,
         blockedUserIds,
+        phoneNumber,
+        notificationsEnabled,
+        emailNotificationsEnabled,
+        pushNotificationsEnabled,
       ];
 }

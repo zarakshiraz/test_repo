@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../router/app_router.dart';
-import '../providers/auth_provider.dart';
+import '../../features/auth/providers/auth_providers.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
+class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -51,15 +51,21 @@ class _SplashPageState extends State<SplashPage>
 
   Future<void> _navigateToNextPage() async {
     await Future.delayed(const Duration(milliseconds: 3000));
-    
+
     if (mounted) {
-      final authProvider = context.read<AuthProvider>();
-      
-      if (authProvider.isAuthenticated) {
-        context.go(AppRouter.lists);
-      } else {
-        context.go(AppRouter.login);
-      }
+      final authState = ref.read(authStateChangesProvider);
+
+      authState.when(
+        data: (user) {
+          if (user != null) {
+            context.go(AppRouter.lists);
+          } else {
+            context.go(AppRouter.login);
+          }
+        },
+        loading: () => context.go(AppRouter.login),
+        error: (_, __) => context.go(AppRouter.login),
+      );
     }
   }
 
