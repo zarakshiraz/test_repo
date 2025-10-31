@@ -84,10 +84,19 @@ coverage/
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
 
-# Firebase
+# Firebase - Actual config files with real keys
 **/google-services.json
 **/GoogleService-Info.plist
-firebase_options.dart
+# Note: firebase_options.dart is tracked with placeholder values
+# Regenerate with: flutterfire configure
+
+# Firebase emulator data
+**/emulator-data/
+**/.firebase/
+
+# Firebase Functions build output
+functions/lib/
+functions/node_modules/
 
 # Environment variables
 .env
