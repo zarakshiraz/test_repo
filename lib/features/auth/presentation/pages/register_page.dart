@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/riverpod_providers.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -48,8 +48,8 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.registerWithEmail(
+      final authNotifier = ref.read(authProvider);
+      final success = await authNotifier.registerWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         displayName: _nameController.text.trim(),
@@ -61,7 +61,7 @@ class _RegisterPageState extends State<RegisterPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Registration failed'),
+              content: Text(authNotifier.errorMessage ?? 'Registration failed'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

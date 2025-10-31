@@ -61,7 +61,7 @@ class ContactProvider with ChangeNotifier {
       }
 
       // Get phone contacts
-      final phoneContacts = await contacts.ContactsService.getContacts();
+      final phoneContacts = await contacts.ContactsService().getContacts();
 
       // Extract emails and phone numbers
       final emailsAndPhones = <String>[];
