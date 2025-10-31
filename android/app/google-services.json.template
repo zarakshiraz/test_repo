@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1234567890",
+    "firebase_url": "https://grocli-app.firebaseio.com",
+    "project_id": "grocli-app",
+    "storage_bucket": "grocli-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1234567890:android:abcdef1234567890",
+        "android_client_info": {
+          "package_name": "com.grocli.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1234567890-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "1234567890-zyxwvutsrqponmlkjihgfedcba654321.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.grocli.app",
+            "certificate_hash": "YOUR_SHA1_CERTIFICATE_HASH"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "YOUR_ANDROID_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1234567890-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1234567890-iosapp123456789abcdefghijklmno.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.grocli.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

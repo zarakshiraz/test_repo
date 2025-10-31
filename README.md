@@ -90,15 +90,22 @@ cd grocli
 # Install dependencies
 flutter pub get
 
-# Generate code
+# Generate code for Hive models
 flutter pub run build_runner build
 
-# Setup Firebase (see SETUP_GUIDE.md)
-flutterfire configure
+# Setup Firebase
+# See detailed instructions in FIREBASE_SETUP.md
+flutterfire configure --project=grocli-app
+
+# Place Firebase config files:
+# - android/app/google-services.json
+# - ios/Runner/GoogleService-Info.plist
 
 # Run the app
 flutter run
 ```
+
+> **Note**: For complete Firebase setup including Authentication providers, Cloud Functions, and FCM, see [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
 
 ---
 
@@ -162,9 +169,17 @@ All data is cached locally using Hive for:
 
 ## 📚 Documentation
 
+### Getting Started
+- [Quick Start (Firebase)](QUICKSTART_FIREBASE.md) - 15-minute Firebase setup
 - [Setup Guide](SETUP_GUIDE.md) - Detailed setup instructions
+- [Firebase Setup](FIREBASE_SETUP.md) - Complete Firebase configuration guide
+- [Firebase Checklist](FIREBASE_CHECKLIST.md) - Track your Firebase setup progress
+
+### Technical Documentation
 - [Features Documentation](FEATURES.md) - Complete feature list
 - [Implementation Details](README_IMPLEMENTATION.md) - Technical details
+- [Firebase Configuration Summary](FIREBASE_CONFIGURATION_SUMMARY.md) - What's configured
+- [Cloud Functions Guide](functions/README.md) - Cloud Functions documentation
 
 ---
 
@@ -200,19 +215,30 @@ All data is cached locally using Hive for:
 
 ### Firebase Setup
 
-1. Create Firebase project
-2. Add Android and iOS apps
-3. Download config files:
-   - `google-services.json` → `android/app/`
-   - `GoogleService-Info.plist` → `ios/Runner/`
-4. Run `flutterfire configure`
+**Complete setup instructions**: [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
+
+Quick start:
+1. Create Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Authentication, Firestore, Storage, Functions, and Cloud Messaging
+3. Add Android app with package `com.grocli.app` and download `google-services.json` → `android/app/`
+4. Add iOS app with bundle ID `com.grocli.app` and download `GoogleService-Info.plist` → `ios/Runner/`
+5. Run `flutterfire configure --project=your-project-id`
+6. Deploy Firestore rules: `firebase deploy --only firestore:rules`
+7. Deploy Storage rules: `firebase deploy --only storage`
+8. Set up Cloud Functions: `cd functions && npm install && cd ..`
+9. Configure authentication providers (Email, Google, Apple)
 
 ### Environment Variables
 
-Create `.env` file (optional):
-```env
-AI_API_KEY=your_api_key
-AI_API_URL=your_api_url
+Firebase Functions configuration:
+```bash
+firebase functions:config:set ai.api_key="your_api_key"
+firebase functions:config:set ai.api_url="your_api_url"
+```
+
+For local development with emulators:
+```bash
+firebase emulators:start
 ```
 
 ---
